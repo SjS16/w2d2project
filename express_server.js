@@ -21,6 +21,13 @@ app.get("/urls", (req, res) => { //new route handle for /urls
   res.render("urls_index", templateVars); //pass url data to template
 });
 
+//new route to render single url display page
+app.get("/urls/:id", (req, res) => { //new route handle for /urls
+  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id] };
+  res.render("urls_show", templateVars);
+});
+
+
 // app.get("/urls.json", (req, res) => {
 //   res.json(urlDatabase);
 // });
