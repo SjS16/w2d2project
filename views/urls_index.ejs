@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TinyApp</title>
+  <style>
+    table, th, td {
+    border: 2px solid black;
+    }
+    th {
+    text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <table style="width:50%">
+    <caption style="font-size:24px;""><b> Shortened URLs </b></caption>
+    <tr>
+      <th>URL</th>
+      <th>SHORT URL</th>
+      <th>LINK</th>
+    </tr>
+    <tr>
+      <% for (var key in urls) { %>
+      <td><%= urls[key] %></td>
+      <td><%= key %></td>
+      <td> <a href="url">link text</a></td>
+    </tr>
+      <% } %>
+</table>
+</body>
+</html>
