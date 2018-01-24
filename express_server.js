@@ -49,7 +49,7 @@ app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   urlDatabase[shortURL] = req.body.longURL
     let templateVars = { username: req.cookies["username"]};
-  res.redirect(`/urls`, templateVars);
+  res.redirect(`/urls`);
 });
 
 app.post("/urls", (req, res) => {
@@ -57,20 +57,20 @@ app.post("/urls", (req, res) => {
   shortURL = generateRandomString();
   urlDatabase[shortURL] = ("http://" + longURL);
     let templateVars = { username: req.cookies["username"]};
-  res.redirect(`http://localhost:8080/urls/${shortURL}`, templateVars);        // Respond with 'Ok' (we will replace this)
+  res.redirect(`http://localhost:8080/urls/${shortURL}`);        // Respond with 'Ok' (we will replace this)
 });
 
 app.post("/urls/:id/delete", (req, res) => {
   shortURL = req.params.id;
   delete urlDatabase[shortURL];
     let templateVars = { username: req.cookies["username"]};
-  res.redirect("/urls/", templateVars);
+  res.redirect("/urls/");
 });
 
 app.get("/u/:shortURL", (req, res) => {
    let longURL = urlDatabase[req.params.shortURL];
      let templateVars = { username: req.cookies["username"]};
-  res.redirect(longURL, templateVars);
+  res.redirect(longURL);
 });
 
 app.post("/logout", (req, res) => {
@@ -80,7 +80,7 @@ app.post("/logout", (req, res) => {
 
 app.get("/hello", (req, res) => {
     let templateVars = { username: req.cookies["username"]};
-  res.end("<html><body>Hello <b>World</b></body></html>\n", templateVars);
+  res.end("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 //function to generate unique short url string
