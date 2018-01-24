@@ -7,6 +7,10 @@
   <title>TinyApp</title>
 </head>
 <body>
-    <u><%=shortURL%></u>: <%=longURL%>
+  <label for="longURL">Short URL: <b><%=shortURL%></b></label>
+
+      <input id="longURL" type="text" name="longURL" placeholder="<%=longURL%>" style="width: 300px">
+      <input type="submit" value="Update"><form method="POST" action="/urls/delete">
+  </form>
 </body>
 </html>

@@ -39,14 +39,23 @@ app.get("/urls/:id", (req, res) => { //new route handle for /urls
 app.post("/urls", (req, res) => {
   var longURL = req.body.longURL;
   shortURL = generateRandomString();
-  urlDatabase[shortURL] = ("http://" + longURL);  // debug statement to see POST parameters
+  urlDatabase[shortURL] = ("http://" + longURL);
   res.redirect(`http://localhost:8080/urls/${shortURL}`);        // Respond with 'Ok' (we will replace this)
+});
+
+app.post("/urls/:id/delete", (req, res) => {
+  shortURL = req.params.id;
+  delete urlDatabase[shortURL];
+  let templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
    let longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
+
+// app.post("/urls/:id")
 
 app.get("/hello", (req, res) => {
   res.end("<html><body>Hello <b>World</b></body></html>\n");
@@ -58,7 +67,6 @@ function generateRandomString() {
   var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   for (var i = 0; i < 6; i++) {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
-
   }return text;
 }
 
