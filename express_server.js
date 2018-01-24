@@ -3,6 +3,7 @@ var express = require("express");
 var app = express();
 var PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require("body-parser");
+var shortURL;
 
 //tell express to use ejs as templating engine
 app.set("view engine", "ejs");
@@ -35,10 +36,16 @@ app.get("/urls/:id", (req, res) => { //new route handle for /urls
   res.render("urls_show", templateVars);
 });
 
-
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // debug statement to see POST parameters
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  var longURL = req.body.longURL;
+  shortURL = generateRandomString();
+  urlDatabase[shortURL] = ("http://" + longURL);  // debug statement to see POST parameters
+  res.redirect(`http://localhost:8080/urls/${shortURL}`);        // Respond with 'Ok' (we will replace this)
+});
+
+app.get("/u/:shortURL", (req, res) => {
+   let longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
 });
 
 app.get("/hello", (req, res) => {
@@ -54,7 +61,6 @@ function generateRandomString() {
 
   }return text;
 }
-console.log(generateRandomString());
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
