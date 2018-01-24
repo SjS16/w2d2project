@@ -28,10 +28,10 @@
       <% for (var key in urls) { %>
       <td><%= urls[key] %></td>
       <td><%= key %></td>
-      <td> <a href="url">link text</a></td>
-      <td><form method="POST" action="/urls/<%= key %>">
-        <input type="submit" value="Edit 🖊️">
-      </form></td>
+      <td><a href="<%= urls[key] %>">Go To URL</a></td>
+      <td><a href="/urls/<%=key%>">
+        Edit
+      </a></td>
       <td><form method="POST" action="/urls/<%= key %>/delete">
         <input type="submit" value="Delete 🗑️">
       </form></td>

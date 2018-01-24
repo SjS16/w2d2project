@@ -3,7 +3,7 @@ var express = require("express");
 var app = express();
 var PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require("body-parser");
-var shortURL;
+
 
 //tell express to use ejs as templating engine
 app.set("view engine", "ejs");
@@ -32,12 +32,18 @@ app.get("/urls/new", (req, res) => {
 
 //new route to render single url display page
 app.get("/urls/:id", (req, res) => { //new route handle for /urls
-  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 
+app.post("/urls/:id", (req, res) => {
+  const shortURL = req.params.id;
+  urlDatabase[shortURL] = req.body.longURL
+  res.redirect(`/urls`);
+});
+
 app.post("/urls", (req, res) => {
-  var longURL = req.body.longURL;
+  const longURL = req.body.longURL;
   shortURL = generateRandomString();
   urlDatabase[shortURL] = ("http://" + longURL);
   res.redirect(`http://localhost:8080/urls/${shortURL}`);        // Respond with 'Ok' (we will replace this)
@@ -46,16 +52,13 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:id/delete", (req, res) => {
   shortURL = req.params.id;
   delete urlDatabase[shortURL];
-  let templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
+  res.redirect("/urls/");
 });
 
 app.get("/u/:shortURL", (req, res) => {
    let longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
-
-// app.post("/urls/:id")
 
 app.get("/hello", (req, res) => {
   res.end("<html><body>Hello <b>World</b></body></html>\n");
