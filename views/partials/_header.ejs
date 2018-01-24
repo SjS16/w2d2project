@@ -1,3 +1,16 @@
-<head>
-    <h1>TinyApp</h1>
+<!DOCTYPE html>
+<head style="font-size:20px; padding:5px;">
+  <h1>TinyApp</h1>
+  <% if (!username) { %>
+    <form action="/login" method="POST" style="margin:5px;">
+      <label for="username">Username:</label>
+      <input id="username" type="text" name="username" placeholder="username" style="width: 100px">
+      <input type="submit" value="Sign In">
+    </form>
+  <% } else { %>
+    <form action="/logout" method="POST" style="margin:5px;">
+      <input type="submit" value="Sign Out"> Currently signed in as: <u><%= username %></u>
+    </form>
+  <% } %>
 </head>
+
