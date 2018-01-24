@@ -45,6 +45,17 @@ app.get("/hello", (req, res) => {
   res.end("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+//function to generate unique short url string
+function generateRandomString() {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (var i = 0; i < 6; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  }return text;
+}
+console.log(generateRandomString());
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
