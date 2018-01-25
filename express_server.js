@@ -12,10 +12,37 @@ app.set("view engine", "ejs");
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purplemonkeydinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
+
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+//Helpers
+
+function isAlreadyRegistered(email) {
+ for (let key in users) {
+  const user = users[key];
+  if (user.email === email) {
+    return true;
+  }
+ }
+ return false;
+}
+
+//Routes
 
 app.get("/", (req, res) => {
   res.end("Hello!");
@@ -38,6 +65,30 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => { //new route handle for /urls
   const templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id], username: req.cookies["username"] };
   res.render("urls_show", templateVars);
+});
+
+app.get("/register", (req, res) => {
+   let templateVars = { username: req.cookies["username"]};
+  res.render("urls_register", templateVars);
+});
+
+app.post("/register", (req, res) => {
+  let templateVars = { username: req.cookies["username"]};
+  const { email, password } = req.body;
+  if (!req.body.email || !req.body.password) {
+    res.status(400).send("Please Fill All Required Fields");
+  } else if (isAlreadyRegistered(email)) {
+    res.status(400).send("User already registered");
+  } else {
+    userID = generateRandomString();
+    users[userID] = {
+      id: userID,
+      email: email,
+      password: password
+    }
+    res.cookie('userID', userID);
+    res.redirect('/urls');
+  }
 });
 
 app.post("/login", (req, res) => {
