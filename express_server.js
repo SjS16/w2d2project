@@ -83,7 +83,7 @@ app.post("/register", (req, res) => {
       email: email,
       password: password
     }
-    res.cookie('userid', users[userid]);
+    res.cookie('userid', userid);
     res.redirect('/urls');
   } console.log(userid);
 });
