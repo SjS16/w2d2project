@@ -26,9 +26,9 @@
     </tr>
     <tr>
       <% for (var key in urls) { %>
-      <td><%= urls[key] %></td>
+      <td><%= urls[key].longurl %></td>
       <td><%= key %></td>
-      <td><a href="<%= urls[key] %>">Go To URL</a></td>
+      <td><a href="<%= urls[key].longurl %>">Go To URL</a></td>
       <td><a href="/urls/<%=key%>">
         Edit 🖊️
       </a></td>

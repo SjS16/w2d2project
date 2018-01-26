@@ -26,9 +26,17 @@ const users = {
 }
 
 var urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
+  "b2xVn2": {
+    shorturl: "b2xVn2",
+    longurl: "http://www.lighthouselabs.ca",
+    userid: "user2RandomID"
+  },
+  "9sm5xK": {
+    shorturl:"9sm5xK",
+    longurl: "http://www.google.com",
+    userid: "userRandomID"
+  } 
+}
 
 //Helpers
 
@@ -42,6 +50,18 @@ function isAlreadyRegistered(email) {
  return false;
 }
 
+function getUrlsForUser(id) {
+  let obj = {};
+  Object.keys(urlDatabase).forEach(function (key) {
+    console.log(urlDatabase[key])
+    if (urlDatabase[key].userid === id) {
+      obj[key] = urlDatabase[key]
+    }
+  })
+  return obj;
+}
+
+
 //Routes
 
 app.get("/", (req, res) => {
@@ -52,15 +72,22 @@ app.get("/", (req, res) => {
 app.get("/urls/new", (req, res) => {
   let templateVars = { 
     user: req.cookies["userid"] };
+    if (!templateVars.user) {
+      res.redirect('/register');
+    } 
   res.render("urls_new", templateVars);
 });
 
 //new route to render single url display page
 app.get("/urls/:id", (req, res) => { //new route handle for /urls
   const templateVars = { shortURL: req.params.id, 
-     longURL: urlDatabase[req.params.id], 
-     username: req.cookies["username"],
+     longURL: urlDatabase[req.params.id].longurl, 
      user: req.cookies["userid"]  };
+  if (!templateVars.user) {
+    res.redirect('/login');
+  } if (templateVars.user !== urlDatabase[req.params.id].userid) {
+    res.status(401).send("Not your URL")
+  }
   res.render("urls_show", templateVars);
 });
 
@@ -85,7 +112,7 @@ app.post("/register", (req, res) => {
     }
     res.cookie('userid', userid);
     res.redirect('/urls');
-  } console.log(userid);
+  }
 });
 
 app.get("/login", (req, res) => {
@@ -101,51 +128,74 @@ app.post("/login", (req, res) => {
       if (userid === username) {
         if (users[userid].password === password) {
           res.cookie("userid", userid)
-          console.log(userid)
           res.redirect('/urls');
         }
-      } else { 
-        res.status(403).send("Not a valid login"); 
-        }
-    }res.redirect('/login');
+      } 
+    }
+    res.status(403).send("Not a valid login");
+    res.redirect('/login');
 });
 
 //pass url data from views/urls_index to express_server.js
 app.get("/urls", (req, res) => { //new route handle for /urls
   let templateVars = {
     urls: urlDatabase,
+    longurl: urlDatabase,
     user: req.cookies["userid"]
+  }; if (!templateVars.user) {
+    res.redirect('/login');
+  } else {
+    templateVars.urls = getUrlsForUser(templateVars.user)
+    res.render("urls_index", templateVars); 
   };
-  res.render("urls_index", templateVars); //pass url data to template
+  // delete urlDatabase[shortURL];
+  //pass url data to template
 });
 
 app.post("/urls/:id", (req, res) => {
-  const shortURL = req.params.id;
-  urlDatabase[shortURL] = req.body.longURL
-    let templateVars = { 
-      user: req.cookies["userid"] };
-  res.redirect(`/urls`);
+  const shortURL = req.params.id
+  let templateVars = {
+    user: req.cookies["userid"],
+    longURL: urlDatabase[req.params.id].longurl
+  }
+  if (templateVars.user === urlDatabase[shortURL].userid) {
+  urlDatabase[shortURL].longurl = req.body.longURL
+    res.redirect(`/urls`);
+    } else {
+      res.status(401).send("Not your URL");
+    }
 });
 
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
+  let templateVars = {
+    userid: req.cookies["userid"]
+  };
   shortURL = generateRandomString();
-  urlDatabase[shortURL] = ("http://" + longURL);
-    let templateVars = { 
-      userid: req.cookies["userid"] };
+  urlDatabase[shortURL] = {
+    shorturl: shortURL,
+    longurl: longURL,
+    userid: req.cookies.userid
+  }
   res.redirect(`http://localhost:8080/urls/${shortURL}`);        // Respond with 'Ok' (we will replace this)
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  shortURL = req.params.id;
-  delete urlDatabase[shortURL];
-    let templateVars = { 
-      user: req.cookies["userid"] };
+  shortURL = req.params.id; let templateVars = {
+    user: req.cookies["userid"],
+    longURL: urlDatabase[req.params.id].longurl
+  }
+  if (templateVars.user === urlDatabase[shortURL].userid) {
+    delete urlDatabase[shortURL];
+    res.redirect(`/urls`);
+  } else {
+    res.status(401).send("Not your URL");
+  }
   res.redirect("/urls/");
 });
 
 app.get("/u/:shortURL", (req, res) => {
-   let longURL = urlDatabase[req.params.shortURL];
+   let longURL = urlDatabase[req.params.shortURL].longurl;
      let templateVars = { 
        user: req.cookies["userid"] };
   res.redirect(longURL);

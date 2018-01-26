@@ -9,8 +9,9 @@
 <body>
   <form action="/urls/<%=shortURL%>" method="POST" style="margin:150px;">
       <label for="longURL">Short URL:<b><%=shortURL%></b></label>
-      <input id="longURL" type="text" name="longURL" placeholder="<%=longURL%>" style="width: 300px">
+      <input id="longURL" type="text" name="longURL" placeholder="<%= longURL %>" style="width: 300px">
       <input type="submit" value="Update">
+      <%=  %>
     </form>
 </body>
 </html>
