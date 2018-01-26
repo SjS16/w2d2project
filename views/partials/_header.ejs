@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<head style="font-size:20px; padding:5px;">
-  <h1>TinyApp</h1>
-  <a href= http://localhost:8080/login>Login</a>
-  <a href= http://localhost:8080/register>Register</a>
+<head>
+      <h1>
+        <u>TinyApp</u>
+      </h1>
+  <a href= http://localhost:8080/urls/>Home</a>
+  <a href= http://localhost:8080/urls/new>New URL</a>
   <% if (user) { %>
     <form action="/logout" method="POST" style="margin:5px;">
-      <input type="submit" value="Sign Out"> Currently signed in as: <u><%= user %></u>
+      <input type="submit" value="Sign Out"> Currently signed in as: <u><%= email %></u>
     </form>
   <% } %>
 </head>
 
+  <body style="font-size:20px; padding:50px;"></body>

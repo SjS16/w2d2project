@@ -69,25 +69,35 @@ function getUrlsForUser(id) {
 //Routes
 
 app.get("/", (req, res) => {
-  res.end("Hello!");
+  let templateVars = {
+    user: req.session.userid
+  };
+  if (!templateVars.user) {
+    res.redirect('/login');
+  } res.redirect('/urls');
 });
 
 //use urls_new to render endpoint /urls/new
 app.get("/urls/new", (req, res) => {
-  let templateVars = { 
-    user: req.session.userid };
-    if (!templateVars.user) {
-      res.redirect('/register');
+
+  if (!req.session.userid) {
+      res.redirect('/login');
     } 
+  let templateVars = {
+    user: req.session.userid,
+    email: users[req.session.userid].email
+  };
   res.render("urls_new", templateVars);
 });
 
 //new route to render single url display page
 app.get("/urls/:id", (req, res) => { //new route handle for /urls
-  const templateVars = { shortURL: req.params.id, 
-     longURL: urlDatabase[shortURL].longurl, 
-     user: req.session.userid };
-     console.log("url database short urllongurl = ", urlDatabase[shortURL].longurl );
+  const templateVars = { 
+     shorturl: req.params.id, 
+     longurl: urlDatabase[req.params.id].longurl, 
+     user: req.session.userid,
+     email: users[req.session.userid].email
+   };
   if (!templateVars.user) {
     res.redirect('/login');
   } if (templateVars.user !== urlDatabase[req.params.id].userid) {
@@ -98,7 +108,8 @@ app.get("/urls/:id", (req, res) => { //new route handle for /urls
 
 app.get("/register", (req, res) => {
    let templateVars = { 
-     user: req.session.userid };
+     user: req.session.userid
+   };
   res.render("urls_register", templateVars);
 });
 
@@ -122,7 +133,7 @@ app.post("/register", (req, res) => {
 
 app.get("/login", (req, res) => {
   let templateVars = {
-    user: req.session.userid
+    user: req.session.userid,
   };
   res.render("urls_login", templateVars);
 });
@@ -143,13 +154,16 @@ app.post("/login", (req, res) => {
 
 //pass url data from views/urls_index to express_server.js
 app.get("/urls", (req, res) => { //new route handle for /urls
-  let templateVars = {
-    urls: urlDatabase,
-    longurl: urlDatabase,
-    user: req.session.userid
-  }; if (!templateVars.user) {
-    res.redirect('/login');
+ if (!req.session.userid) {
+   res.status(401).send("Not logged in")
+   res.redirect('/login');
   } else {
+   let templateVars = {
+     urls: urlDatabase,
+     longurl: urlDatabase,
+     user: req.session.userid,
+     email: users[req.session.userid].email
+   };
     templateVars.urls = getUrlsForUser(templateVars.user)
     res.render("urls_index", templateVars); 
   };
@@ -157,10 +171,14 @@ app.get("/urls", (req, res) => { //new route handle for /urls
 });
 
 app.post("/urls/:id", (req, res) => {
+  if (!req.params.id) {
+    res.status(400).send("Short URL Code does not exist")
+  }
   const shortURL = req.params.id
   let templateVars = {
     user: req.session.userid,
-    longURL: urlDatabase[req.params.id].longurl
+    longURL: urlDatabase[req.params.id].longurl,
+    email: users[req.session.userid].email
   }
   if (templateVars.user === urlDatabase[shortURL].userid) {
   urlDatabase[shortURL].longurl = req.body.longURL
@@ -171,9 +189,14 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  if (!req.session.userid) {
+    res.status(401).send("Not logged in")
+    res.redirect('/login');
+  } else {
   const longURL = req.body.longURL;
   let templateVars = {
-    userid: req.session.userid
+    userid: req.session.userid,
+    email: users[req.session.userid].email
   };
   shortURL = generateRandomString();
   urlDatabase[shortURL] = {
@@ -181,14 +204,16 @@ app.post("/urls", (req, res) => {
     longurl: longURL,
     userid: req.session.userid
   } 
-  res.redirect(`http://localhost:8080/urls/${shortURL}`);        // Respond with 'Ok' (we will replace this)
+  res.redirect(`http://localhost:8080/urls/${shortURL}`); 
+  }       // Respond with 'Ok' (we will replace this)
 });
 
 
 app.post("/urls/:id/delete", (req, res) => {
   shortURL = req.params.id; let templateVars = {
     user: req.session.userid,
-    longURL: urlDatabase[req.params.id].longurl
+    longURL: urlDatabase[req.params.id].longurl,
+    email: users[req.session.userid].email
   }
   if (templateVars.user === urlDatabase[shortURL].userid) {
     delete urlDatabase[shortURL];
@@ -202,7 +227,9 @@ app.post("/urls/:id/delete", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
    let longURL = urlDatabase[req.params.shortURL].longurl;
      let templateVars = { 
-       user: req.session.userid };
+       user: req.session.userid,
+       email: users[req.session.userid].email
+      };
   res.redirect(longURL);
 });
 
@@ -213,7 +240,9 @@ app.post("/logout", (req, res) => {
 
 app.get("/hello", (req, res) => {
     let templateVars = { 
-      user: req.session.userid };
+      user: req.session.userid,
+      email: users[req.session.userid].email
+     };
   res.end("<html><body>Hello <b>World</b></body></html>\n");
 });
 

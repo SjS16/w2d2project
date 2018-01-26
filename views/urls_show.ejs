@@ -6,10 +6,10 @@
     <!-- </head> -->
   <title>TinyApp</title>
 </head>
-<body>
-  <form action="/urls/<%=shortURL%>" method="POST" style="margin:150px;">
-      <label for="longURL">Short URL:<b><%=shortURL%></b></label>
-      <input id="longURL" type="text" name="longURL" placeholder="<%= longURL %>" style="width: 300px">
+  <body style="font-size:20px; padding:50px;">
+  <form action="/urls/<%=shorturl%>" method="POST" style="margin:150px;">
+      <label for="longURL">Short URL:<b>http://localhost:8080/u/<%= shorturl %></b></label>
+      <input id="longURL" type="text" name="longURL" placeholder="<%= longurl %>" style="width: 300px">
       <input type="submit" value="Update">
       <%=  %>
     </form>
