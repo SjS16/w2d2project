@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+      <% if (flash) { %>
+        <p class="error"><%= flash %></p>
+      <% } %>
   <head>
     <% include partials/_header %>
   </head>

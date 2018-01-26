@@ -15,6 +15,12 @@ app.use(cookieSession({
   keys: [process.env.SECRET_KEY || 'dvelopment']
 }));
 
+app.use((req, res, next) => {
+  req.flash = req.session.flash || null;
+  req.session.flash = null;
+  next();
+});
+
 app.use(bodyParser.urlencoded({extended: true}));
 
 const users = {
@@ -73,19 +79,24 @@ app.get("/", (req, res) => {
     user: req.session.userid
   };
   if (!templateVars.user) {
+    req.session.flash = "Not logged in";
     res.redirect('/login');
-  } res.redirect('/urls');
+    return;
+  } 
+  res.redirect('/urls');
 });
 
 //use urls_new to render endpoint /urls/new
 app.get("/urls/new", (req, res) => {
-
   if (!req.session.userid) {
-      res.redirect('/login');
+    req.session.flash = "Not logged in";
+    res.redirect('/login');
+    return;
     } 
   let templateVars = {
     user: req.session.userid,
-    email: users[req.session.userid].email
+    email: users[req.session.userid].email,
+    flash: req.flash
   };
   res.render("urls_new", templateVars);
 });
@@ -93,29 +104,41 @@ app.get("/urls/new", (req, res) => {
 //new route to render single url display page
 app.get("/urls/:id", (req, res) => { //new route handle for /urls
   if (!urlDatabase.hasOwnProperty(req.params.id)) {
-    res.status(400).send("URL does not exist")
+    res.status(400);
+    req.session.flash = "URL does not exist";
+    res.redirect('/urls/');
+    return;
+  } if (!req.session.userid) {
+    res.status(401)
+    req.session.flash = "Not logged in";
+    res.redirect('/login');
+    return;
   }
   const templateVars = { 
      shorturl: req.params.id, 
      longurl: urlDatabase[req.params.id].longurl, 
      user: req.session.userid,
-     email: users[req.session.userid].email
+     email: users[req.session.userid].email,
+     flash: req.flash
    };
-  if (!templateVars.user) {
-    res.redirect('/login');
-  } if (templateVars.user !== urlDatabase[req.params.id].userid) {
-    res.status(401).send("Not your URL")
+  if (templateVars.user !== urlDatabase[req.params.id].userid) {
+    res.status(401);
+    req.session.flash = "Not your URL";
+    res.redirect('/urls/');
+    return;
   } 
   res.render("urls_show", templateVars);
 });
 
 app.get("/register", (req, res) => {
   if (req.session.userid) {
-    res.status(400).send("User already signed in");
-    res.redirect("/urls");
+    res.status(400);
+    req.session.flash = "User already signed in";
+    res.redirect('/urls/');
   }
    let templateVars = { 
-     user: req.session.userid
+     user: req.session.userid,
+     flash: req.flash
    };
   res.render("urls_register", templateVars);
 });
@@ -123,9 +146,13 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
   if (!req.body.email || !req.body.password) {
-    res.status(400).send("Please Fill All Required Fields");
+    res.status(400);
+    req.session.flash = "Please Fill All Required Fields";
+    res.redirect('/register/');
   } else if (isAlreadyRegistered(email)) {
-    res.status(400).send("User already registered");
+    res.status(400);
+    req.session.flash = "User already registered";
+    res.redirect('/register/');
   } else {
     userid = generateRandomString();
     users[userid] = {
@@ -140,12 +167,13 @@ app.post("/register", (req, res) => {
 
 app.get("/login", (req, res) => {
   if (req.session.userid) {
-    res.status(400).send("User already signed in");
-    res.redirect("/urls");
+    res.status(400);
+    req.session.flash = "User already signed in";
+    res.redirect('/urls/');
   }let templateVars = {
     user: req.session.userid,
+    flash: req.flash
   };
-  
   res.render("urls_login", templateVars);
 });
 
@@ -159,21 +187,24 @@ app.post("/login", (req, res) => {
        }
       } 
     }
-    res.status(403).send("Not a valid login");
-    res.redirect('/login');
+  res.status(403)
+  req.session.flash = "Not a valid login";
+  res.redirect('/login');
 });
 
 //pass url data from views/urls_index to express_server.js
 app.get("/urls", (req, res) => { //new route handle for /urls
  if (!req.session.userid) {
-   res.status(401).send("Not logged in");
+   res.status(401);
+   req.session.flash = "Not logged in";
    res.redirect('/login');
   } else {
    let templateVars = {
      urls: urlDatabase,
      longurl: urlDatabase,
      user: req.session.userid,
-     email: users[req.session.userid].email
+     email: users[req.session.userid].email,
+     flash: req.flash
    };
     templateVars.urls = getUrlsForUser(templateVars.user)
     res.render("urls_index", templateVars); 
@@ -183,31 +214,36 @@ app.get("/urls", (req, res) => { //new route handle for /urls
 
 app.post("/urls/:id", (req, res) => {
   if (!req.params.id) {
-    res.status(400).send("Short URL Code does not exist")
+    res.status(400);
+    req.session.flash = "Short URL Code does not exist";
+    res.redirect('/urls');
   }
   const shortURL = req.params.id
   let templateVars = {
     user: req.session.userid,
     longURL: urlDatabase[req.params.id].longurl,
-    email: users[req.session.userid].email
+    email: users[req.session.userid].email,
+    flash: req.flash
   }
   if (templateVars.user === urlDatabase[shortURL].userid) {
-  urlDatabase[shortURL].longurl = req.body.longURL
-    res.redirect(`/urls`);
+  urlDatabase[shortURL].longurl = req.body.longURL;
     } else {
-      res.status(401).send("Not your URL");
-    }
+      res.status(401);
+      req.session.flash = "Not your URL";
+    } res.redirect(`/urls`);
 });
 
 app.post("/urls", (req, res) => {
   if (!req.session.userid) {
-    res.status(401).send("Not logged in")
+    res.status(401);
+    req.session.flash = "Not logged in";
     res.redirect('/login');
   } else {
   const longURL = req.body.longURL;
   let templateVars = {
     userid: req.session.userid,
-    email: users[req.session.userid].email
+    email: users[req.session.userid].email,
+    flash: req.flash
   };
   shortURL = generateRandomString();
   urlDatabase[shortURL] = {
@@ -224,25 +260,36 @@ app.post("/urls/:id/delete", (req, res) => {
   shortURL = req.params.id; let templateVars = {
     user: req.session.userid,
     longURL: urlDatabase[req.params.id].longurl,
-    email: users[req.session.userid].email
+    email: users[req.session.userid].email,
+    flash: req.flash
   }
   if (templateVars.user === urlDatabase[shortURL].userid) {
     delete urlDatabase[shortURL];
+    req.session.flash = "URL Deleted"
     res.redirect(`/urls`);
   } else {
-    res.status(401).send("Not your URL");
+    res.status(401);
+    req.session.flash = "Not your URL";
+    res.redirect('/urls');
   }
   res.redirect("/urls/");
 });
 
 app.get("/u/:shortURL", (req, res) => {
-   let longURL = urlDatabase[req.params.shortURL].longurl;
+  if (req.params.shortURL !== urlDatabase) {
+    res.status(400);
+    res.session.flash = "Short URL Code does not exist";
+    res.redirect('/urls');
+    return;
+  } else {
+  let longURL = urlDatabase[req.params.shortURL].longurl;
      let templateVars = { 
        user: req.session.userid,
-       email: users[req.session.userid].email
+       email: users[req.session.userid].email,
+       flash: req.flash
       };
   res.redirect(longURL);
-
+  }
 });
 
 app.post("/logout", (req, res) => {
@@ -253,7 +300,8 @@ app.post("/logout", (req, res) => {
 app.get("/hello", (req, res) => {
     let templateVars = { 
       user: req.session.userid,
-      email: users[req.session.userid].email
+      email: users[req.session.userid].email,
+      flash: req.flash
      };
   res.end("<html><body>Hello <b>World</b></body></html>\n");
 });

@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+      <% if (flash) { %>
+        <p class="error"><%= flash %></p>
+      <% } %>
 <head>
   <head>
     <% include ./partials/_header %>
@@ -19,15 +22,13 @@
     <caption style="font-size:24px;""><b> Shortened URLs </b></caption>
     <tr>
       <th>URL</th>
-      <th>SHORT URL</th>
-      <th>LINK</th>
+      <th>SHORT URL LINK</th>
       <th>EDIT</th>
       <th>DELETE</th>
     </tr>
     <tr>
       <% for (var key in urls) { %>
       <td><%= urls[key].longurl %></td>
-      <td><%= key %></td>
       <td><a href="<%= urls[key].longurl %>"> http://localhost:8080/u/<%= key %></a></td>
       <td><a href="/urls/<%=urls[key].shorturl%>">
         Edit 🖊️

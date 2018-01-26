@@ -4,7 +4,7 @@
         <u>TinyApp</u>
       </h1>
   <a href= http://localhost:8080/urls/>Home</a>
-  <a href= http://localhost:8080/urls/new>New URL</a>
+  <a href= http://localhost:8080/urls/new>New Short URL</a>
   <% if (user) { %>
     <form action="/logout" method="POST" style="margin:5px;">
       <input type="submit" value="Sign Out"> Currently signed in as: <u><%= email %></u>
@@ -12,4 +12,4 @@
   <% } %>
 </head>
 
-  <body style="font-size:20px; padding:50px;"></body>
+<body style="font-size:20px; padding:50px;"></body>
