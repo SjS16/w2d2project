@@ -92,6 +92,9 @@ app.get("/urls/new", (req, res) => {
 
 //new route to render single url display page
 app.get("/urls/:id", (req, res) => { //new route handle for /urls
+  if (!urlDatabase.hasOwnProperty(req.params.id)) {
+    res.status(400).send("URL does not exist")
+  }
   const templateVars = { 
      shorturl: req.params.id, 
      longurl: urlDatabase[req.params.id].longurl, 
@@ -102,11 +105,15 @@ app.get("/urls/:id", (req, res) => { //new route handle for /urls
     res.redirect('/login');
   } if (templateVars.user !== urlDatabase[req.params.id].userid) {
     res.status(401).send("Not your URL")
-  }
+  } 
   res.render("urls_show", templateVars);
 });
 
 app.get("/register", (req, res) => {
+  if (req.session.userid) {
+    res.status(400).send("User already signed in");
+    res.redirect("/urls");
+  }
    let templateVars = { 
      user: req.session.userid
    };
@@ -132,9 +139,13 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  let templateVars = {
+  if (req.session.userid) {
+    res.status(400).send("User already signed in");
+    res.redirect("/urls");
+  }let templateVars = {
     user: req.session.userid,
   };
+  
   res.render("urls_login", templateVars);
 });
 
@@ -155,7 +166,7 @@ app.post("/login", (req, res) => {
 //pass url data from views/urls_index to express_server.js
 app.get("/urls", (req, res) => { //new route handle for /urls
  if (!req.session.userid) {
-   res.status(401).send("Not logged in")
+   res.status(401).send("Not logged in");
    res.redirect('/login');
   } else {
    let templateVars = {
@@ -231,6 +242,7 @@ app.get("/u/:shortURL", (req, res) => {
        email: users[req.session.userid].email
       };
   res.redirect(longURL);
+
 });
 
 app.post("/logout", (req, res) => {
