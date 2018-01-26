@@ -4,6 +4,7 @@ var app = express();
 var PORT = process.env.PORT || 8080; // default port 8080
 var cookieParser = require('cookie-parser')
 const bodyParser = require("body-parser");
+const bcrypt = require('bcrypt');
 
 
 //tell express to use ejs as templating engine
@@ -16,12 +17,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purplemonkeydinosaur"
+    password: bcrypt.hashSync("purplemonkeydinosaur", 10)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", 10)
   }
 }
 
@@ -53,7 +54,6 @@ function isAlreadyRegistered(email) {
 function getUrlsForUser(id) {
   let obj = {};
   Object.keys(urlDatabase).forEach(function (key) {
-    console.log(urlDatabase[key])
     if (urlDatabase[key].userid === id) {
       obj[key] = urlDatabase[key]
     }
@@ -108,7 +108,7 @@ app.post("/register", (req, res) => {
     users[userid] = {
       id: userid,
       email: email,
-      password: password
+      password: bcrypt.hashSync(password, 10)
     }
     res.cookie('userid', userid);
     res.redirect('/urls');
@@ -126,10 +126,10 @@ app.post("/login", (req, res) => {
   const { username, password } = req.body;
     for (userid in users) {
       if (userid === username) {
-        if (users[userid].password === password) {
+        if (bcrypt.compareSync(password, users[userid].password)) {
           res.cookie("userid", userid)
           res.redirect('/urls');
-        }
+       }
       } 
     }
     res.status(403).send("Not a valid login");
@@ -148,7 +148,6 @@ app.get("/urls", (req, res) => { //new route handle for /urls
     templateVars.urls = getUrlsForUser(templateVars.user)
     res.render("urls_index", templateVars); 
   };
-  // delete urlDatabase[shortURL];
   //pass url data to template
 });
 
@@ -176,9 +175,10 @@ app.post("/urls", (req, res) => {
     shorturl: shortURL,
     longurl: longURL,
     userid: req.cookies.userid
-  }
+  } 
   res.redirect(`http://localhost:8080/urls/${shortURL}`);        // Respond with 'Ok' (we will replace this)
 });
+
 
 app.post("/urls/:id/delete", (req, res) => {
   shortURL = req.params.id; let templateVars = {
