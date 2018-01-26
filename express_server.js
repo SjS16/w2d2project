@@ -287,18 +287,20 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
+  var templateVars = {
+    flash: req.flash
+  }
   if (req.params.shortURL !== urlDatabase) {
     res.status(400);
-    res.session.flash = "Short URL Code does not exist";
+    req.session.flash = "Short URL Code does not exist";
     res.redirect('/urls');
     return;
   } else {
-    let longURL = urlDatabase[req.params.shortURL].longurl;
-    let templateVars = {
+    var templateVars = {
       user: req.session.userid,
-      email: users[req.session.userid].email,
       flash: req.flash
     };
+    let longURL = urlDatabase[req.params.shortURL].longurl;
     res.redirect(longURL);
   }
 });
