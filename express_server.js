@@ -22,7 +22,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const users = {
   "userRandomID": {
@@ -74,14 +74,29 @@ function getUrlsForUser(id) {
 
 //function to generate unique short url string
 function generateRandomString() {
-  var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (var i = 0; i < 6; i++) {
+  let text = "";
+  let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < 6; i++) {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   } return text;
 }
 
 //Routes
+
+app.get("/u/:shortURL", (req, res) => {
+  var templateVars = {
+    flash: req.flash
+  }
+  let longURL = urlDatabase[req.params.shortURL].longurl;
+    res.redirect(longURL);
+    console.log(longURL)
+  if (req.params.shortURL !== urlDatabase) {
+    res.status(400);
+    req.session.flash = "Short URL Code does not exist";
+    res.redirect('/urls');
+    return;
+  }
+});
 
 app.get("/", (req, res) => {
   let templateVars = {
@@ -155,6 +170,15 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
+  userid = generateRandomString();
+  users[userid] = {
+  id: userid,
+  email: email,
+  password: bcrypt.hashSync(password, 10)
+  }
+  console.log(users);
+  req.session.userid = userid;
+  res.redirect('/urls');
   if (!req.body.email || !req.body.password) {
     res.status(400);
     req.session.flash = "Please Fill All Required Fields";
@@ -163,15 +187,6 @@ app.post("/register", (req, res) => {
     res.status(400);
     req.session.flash = "User already registered";
     res.redirect('/register/');
-  } else {
-    userid = generateRandomString();
-    users[userid] = {
-      id: userid,
-      email: email,
-      password: bcrypt.hashSync(password, 10)
-    };
-    req.session.userid = userid;
-    res.redirect('/urls');
   }
 });
 
@@ -180,7 +195,7 @@ app.get("/login", (req, res) => {
     res.status(400);
     req.session.flash = "User already signed in";
     res.redirect('/urls/');
-  }let templateVars = {
+  } let templateVars = {
     user: req.session.userid,
     flash: req.flash
   };
@@ -188,18 +203,21 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const { username, password } = req.body;
-  for (userid in users) {
-    if (userid === username) {
-      if (bcrypt.compareSync(password, users[userid].password)) {
-        req.session.userid = userid;
+  const { password } = req.body;
+  const email1 = req.body.email;
+  for (var user in users) {
+    if (users[user].email === email1) {
+      if (bcrypt.compareSync(password, users[user].password)) {
+        req.session.userid = user;
         res.redirect('/urls');
-      }
+        break;
+      } 
+    } else {
+      res.status(403);
+      req.session.flash = "Not a valid login";
+     res.redirect('/login');
     }
   }
-  res.status(403);
-  req.session.flash = "Not a valid login";
-  res.redirect('/login');
 });
 
 //pass url data from views/urls_index to express_server.js
@@ -284,25 +302,6 @@ app.post("/urls/:id/delete", (req, res) => {
     res.redirect('/urls');
   }
   res.redirect("/urls/");
-});
-
-app.get("/u/:shortURL", (req, res) => {
-  var templateVars = {
-    flash: req.flash
-  }
-  if (req.params.shortURL !== urlDatabase) {
-    res.status(400);
-    req.session.flash = "Short URL Code does not exist";
-    res.redirect('/urls');
-    return;
-  } else {
-    var templateVars = {
-      user: req.session.userid,
-      flash: req.flash
-    };
-    let longURL = urlDatabase[req.params.shortURL].longurl;
-    res.redirect(longURL);
-  }
 });
 
 app.post("/logout", (req, res) => {
